@@ -7,14 +7,16 @@ deb https://community-packages.deepin.com/deepin/ apricot main contrib non-free
 2. 同步最新librime代码 ```git clone https://github.com/rime/librime.git```
 3. 拉取submodule ```git submodule update --init```
 4. 执行```bash install-plugins.sh hchunhui/librime-lua lotem/librime-octagram``` 安装两个插件，charcode 不推荐添加
-5. 修改deps目录下leveldb的CMakeLists.txt，避免后续编译失败，
-   先在```check_library_exists(tcmalloc malloc "" HAVE_TCMALLOC)```下面添加以下内容：<br>
+5. 修改deps目录下leveldb的CMakeLists.txt，避免后续编译失败
+   <br>在```check_library_exists(tcmalloc malloc "" HAVE_TCMALLOC)```下面添加以下内容：<br>
    ```add_compile_options(-fPIC)```
-6. 执行 ```make deps```
-7. 执行 ```bash install-boost.sh```，建议手动下载对应的包到deps目录下再执行，脚本网络下载时特别慢
+   <br>或者在deps.mk中的leveldb区加上一句：<br>
+   ```-DCMAKE_POSITION_INDEPDENT_CODE=TRUE```
+7. 执行 ```make deps```
+8. 执行 ```bash install-boost.sh```，建议手动下载对应的包到deps目录下再执行，脚本网络下载时特别慢
    并配置环境变量 ```export BOOST_ROOT=${librime_src_dir}/deps/boost-1.84.0```
 
-8. 修改CMakeLists.txt，有两处需要修改
+9. 修改CMakeLists.txt，有两处需要修改
 
 ```option(BUILD_STATIC "Build with dependencies as static libraries" OFF)```  由OFF改为ON，意为静态编译
 
