@@ -18,7 +18,7 @@ deb https://community-packages.deepin.com/deepin/ apricot main contrib non-free
 
 ```option(BUILD_STATIC "Build with dependencies as static libraries" OFF)```  由OFF改为ON，意为静态编译
 
-在add_subdirectory(src)
+在```add_subdirectory(src)```
 下添加如下代码：
 ```
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
