@@ -1,7 +1,7 @@
 # librime-uos20-build-wiki 
 # 背景：librime官方升级了编译依赖，在UOS v20（本质上基于debian 10）仓库里的boost，glog，gcc等包全部不能满足编译要求，在UOS v20上使用常规打包方法编译最新版本librime变得异常困难
 # 本文用于指导静态编译librime，以下步骤由本人在UOS v20 1055下的验证通过，推荐在pbuilder下进行，避免破坏本机UOS系统依赖
-1. 安装cmake 3.2x或以上，liblua5.x-dev<br>*3.22版本cmake可以从社区版deepin 20.9源安装（请不要在UOS上装社区版源里面的其它无关的包，避免破坏UOS系统）
+1. 安装cmake 3.2x或以上，liblua5.x-dev，pkgconf<br>*3.22版本cmake可以从社区版deepin 20.9源安装（请不要在UOS上装社区版源里面的其它无关的包，避免破坏UOS系统）
 ```
 deb https://community-packages.deepin.com/deepin/ apricot main contrib non-free
 ```
