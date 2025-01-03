@@ -53,13 +53,14 @@ jobs:
         cd librime
         # Change option(BUILD_STATIC to ON)
         sed -i 's/option(BUILD_STATIC "Build with dependencies as static libraries" OFF)/option(BUILD_STATIC "Build with dependencies as static libraries" ON)/' CMakeLists.txt
+
+        sed -i '61a cmake_policy(SET CMP0144 NEW)\ncmake_policy(SET CMP0167 NEW)' CMakeLists.txt
         # Add compatibility for GCC < 9.0
         sed -i '/add_subdirectory(src)/a \
         if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")\n\
             execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)\n\
             if(GCC_VERSION VERSION_LESS 9.0)\n\
                 cmake_policy(SET CMP0079 NEW)\n\
-                cmake_policy(SET CMP0144 NEW)\n\
                 target_link_libraries(${rime_library} stdc++fs)\n\
             endif()\n\
         endif()' CMakeLists.txt
