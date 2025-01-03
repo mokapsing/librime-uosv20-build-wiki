@@ -1,0 +1,77 @@
+name: Build librime with plugins
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04  # Debian 10 的相似环境
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y cmake liblua5.3-dev pkgconf git build-essential
+
+    - name: Clone librime repository
+      run: |
+        git clone https://github.com/rime/librime.git
+        cd librime
+        git submodule update --init
+
+    - name: Modify leveldb CMakeLists.txt for compilation
+      run: |
+        cd librime
+        sed -i '/check_library_exists(tcmalloc malloc "" HAVE_TCMALLOC)/a add_compile_options(-fPIC)' deps/leveldb/CMakeLists.txt
+
+    - name: Install plugins
+      run: |
+        cd librime
+        bash install-plugins.sh hchunhui/librime-lua lotem/librime-octagram
+
+    - name: Run make deps
+      run: |
+        cd librime
+        make deps
+
+    - name: Install Boost
+      run: |
+        cd librime
+        bash install-boost.sh
+        # Boost download is slow, manually set BOOST_ROOT if needed
+        export BOOST_ROOT=${PWD}/deps/boost-1.84.0
+
+    - name: Modify CMakeLists.txt for static compilation and compatibility
+      run: |
+        cd librime
+        # Change option(BUILD_STATIC to ON)
+        sed -i 's/option(BUILD_STATIC "Build with dependencies as static libraries" OFF)/option(BUILD_STATIC "Build with dependencies as static libraries" ON)/' CMakeLists.txt
+        # Add compatibility for GCC < 9.0
+        echo '
+        if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+            execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
+            if(GCC_VERSION VERSION_LESS 9.0)
+                cmake_policy(SET CMP0079 NEW)
+                target_link_libraries(${rime_library} stdc++fs)
+            endif()
+        endif()
+        ' >> CMakeLists.txt
+
+    - name: Build librime
+      run: |
+        cd librime
+        make merged-plugins
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: librime-build
+        path: librime/build/{lib,bin}  # Change path if needed based on actual build output
