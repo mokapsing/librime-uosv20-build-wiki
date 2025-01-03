@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04  # Debian 10 的相似环境
+    runs-on: ubuntu-19.10  # Debian 10 的相似环境
 
     steps:
     - name: Checkout code
