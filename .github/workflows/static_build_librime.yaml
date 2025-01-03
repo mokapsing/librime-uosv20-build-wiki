@@ -55,6 +55,7 @@ jobs:
     - name: Modify CMakeLists.txt for static compilation and compatibility
       run: |
         cd librime
+        sed -i '1s|^|cmake_policy(SET CMP0144 NEW)\ncmake_policy(SET CMP0167 NEW)\n|' CMakeLists.txt
         # Change option(BUILD_STATIC to ON)
         sed -i 's/option(BUILD_STATIC "Build with dependencies as static libraries" OFF)/option(BUILD_STATIC "Build with dependencies as static libraries" ON)/' CMakeLists.txt
 
