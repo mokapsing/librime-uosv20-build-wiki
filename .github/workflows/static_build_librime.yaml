@@ -20,7 +20,6 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y cmake liblua5.4-dev pkgconf git build-essential musl-tools
-        which musl-g++
         dpkg -L musl-tools
 
     - name: Clone librime repository
