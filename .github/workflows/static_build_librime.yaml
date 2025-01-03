@@ -59,6 +59,7 @@ jobs:
             execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)\n\
             if(GCC_VERSION VERSION_LESS 9.0)\n\
                 cmake_policy(SET CMP0079 NEW)\n\
+                cmake_policy(SET CMP0144 NEW)\n\
                 target_link_libraries(${rime_library} stdc++fs)\n\
             endif()\n\
         endif()' CMakeLists.txt
