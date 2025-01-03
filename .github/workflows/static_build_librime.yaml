@@ -31,6 +31,9 @@ jobs:
       run: |
         cd librime
         sed -i '/check_library_exists(tcmalloc malloc "" HAVE_TCMALLOC)/a add_compile_options(-fPIC)' deps/leveldb/CMakeLists.txt
+        echo "check deps/leveldb/CMakeLists.txt --start"
+        cat deps/leveldb/CMakeLists.txt
+        echo "check deps/leveldb/CMakeLists.txt --end"
 
     - name: Install plugins
       run: |
