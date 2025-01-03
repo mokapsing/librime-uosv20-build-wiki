@@ -47,7 +47,6 @@ jobs:
         cd librime
         bash install-boost.sh
         # Boost download is slow, manually set BOOST_ROOT if needed
-        export BOOST_ROOT=${PWD}/deps/boost-1.84.0
 
     - name: Modify CMakeLists.txt for static compilation and compatibility
       run: |
@@ -68,6 +67,7 @@ jobs:
     - name: Build librime
       run: |
         cd librime
+        export BOOST_ROOT=${PWD}/deps/boost-1.84.0
         make merged-plugins
 
     - name: Upload build artifacts
