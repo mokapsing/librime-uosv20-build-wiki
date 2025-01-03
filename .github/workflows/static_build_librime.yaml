@@ -67,6 +67,9 @@ jobs:
     - name: Build librime
       run: |
         cd librime
+        echo "check CMakeLists --start"
+        cat CMakeLists.txt
+        echo "check CMakeLists --end"
         export BOOST_ROOT=${PWD}/deps/boost-1.84.0
         make merged-plugins
 
