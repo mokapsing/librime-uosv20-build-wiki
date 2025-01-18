@@ -11,7 +11,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: debian:10
+    container: ubuntu:18.04
     steps:
       - name: Install dependencies
         run: apt update && apt install -y cmake liblua5.3-dev pkgconf git build-essential
