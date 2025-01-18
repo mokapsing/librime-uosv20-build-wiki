@@ -10,76 +10,64 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # 使用 Ubuntu 最新环境
-
+    runs-on: ubuntu-latest
+    container: debian:10
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Install dependencies
+        run: sudo apt update && sudo apt install -y cmake liblua5.3-dev pkgconf git build-essential
 
-    - name: Install dependencies
-      run: |
-        sudo apt update
-        sudo apt install -y cmake liblua5.4-dev pkgconf git build-essential musl-tools
-        sudo ln -s "/usr/bin/g++" "/usr/bin/musl-g++"
+      - name: Clone librime repository
+        run: |
+          git clone https://github.com/rime/librime.git
+          cd librime
+          git submodule update --init
 
-    - name: Clone librime repository
-      run: |
-        git clone https://github.com/rime/librime.git
-        cd librime
-        git submodule update --init
+      - name: Modify leveldb CMakeLists.txt for compilation
+        run: |
+          cd librime
+          sed -i '/check_library_exists(tcmalloc malloc "" HAVE_TCMALLOC)/a add_compile_options(-fPIC)' deps/leveldb/CMakeLists.txt
 
-    - name: Modify leveldb CMakeLists.txt for compilation
-      run: |
-        cd librime
-        sed -i '/check_library_exists(tcmalloc malloc "" HAVE_TCMALLOC)/a add_compile_options(-fPIC)' deps/leveldb/CMakeLists.txt
-        echo "check deps/leveldb/CMakeLists.txt --start"
-        cat deps/leveldb/CMakeLists.txt
-        echo "check deps/leveldb/CMakeLists.txt --end"
+      - name: Install plugins
+        run: |
+          cd librime
+          bash install-plugins.sh hchunhui/librime-lua lotem/librime-octagram
 
-    - name: Install plugins
-      run: |
-        cd librime
-        bash install-plugins.sh hchunhui/librime-lua lotem/librime-octagram
+      - name: Run make deps
+        run: |
+          cd librime
+          make deps
 
-    - name: Run make deps
-      run: |
-        cd librime
-        make deps
+      - name: Install Boost
+        run: |
+          cd librime
+          bash install-boost.sh
+          # Boost download is slow, manually set BOOST_ROOT if needed
+          export BOOST_ROOT=${PWD}/deps/boost-1.84.0
 
-    - name: Install Boost
-      run: |
-        cd librime
-        bash install-boost.sh
-        # Boost download is slow, manually set BOOST_ROOT if needed
+      - name: Modify CMakeLists.txt for static compilation and compatibility
+        run: |
+          cd librime
+          # Change option(BUILD_STATIC to ON)
+          sed -i 's/option(BUILD_STATIC "Build with dependencies as static libraries" OFF)/option(BUILD_STATIC "Build with dependencies as static libraries" ON)/' CMakeLists.txt
 
-    - name: Modify CMakeLists.txt for static compilation and compatibility
-      run: |
-        cd librime
-        sed -i '1s|^|cmake_policy(SET CMP0144 NEW)\ncmake_policy(SET CMP0167 NEW)\n|' CMakeLists.txt
-        # Change option(BUILD_STATIC to ON)
-        sed -i 's/option(BUILD_STATIC "Build with dependencies as static libraries" OFF)/option(BUILD_STATIC "Build with dependencies as static libraries" ON)/' CMakeLists.txt
+          ##sed -i '61a cmake_policy(SET CMP0144 NEW)\ncmake_policy(SET CMP0167 NEW)' CMakeLists.txt
+          # Add compatibility for GCC < 9.0
+          sed -i '/add_subdirectory(src)/a \
+          if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")\n\
+              execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)\n\
+              if(GCC_VERSION VERSION_LESS 9.0)\n\
+                  cmake_policy(SET CMP0079 NEW)\n\
+                  target_link_libraries(${rime_library} stdc++fs)\n\
+              endif()\n\
+          endif()' CMakeLists.txt
 
-    - name: Set up musl toolchain for static compilation
-      run: |
-        echo "set(CMAKE_SYSTEM_NAME Linux)" > musl-toolchain.cmake
-        echo "set(CMAKE_SYSTEM_PROCESSOR x86_64)" >> musl-toolchain.cmake
-        echo "set(CMAKE_C_COMPILER musl-gcc)" >> musl-toolchain.cmake
-        echo "set(CMAKE_CXX_COMPILER musl-g++)" >> musl-toolchain.cmake
-        echo "set(CMAKE_EXE_LINKER_FLAGS \"-static\")" >> musl-toolchain.cmake
-        echo "set(CMAKE_C_FLAGS \"-static -fPIC\")" >> musl-toolchain.cmake
-        echo "set(CMAKE_CXX_FLAGS \"-static -fPIC\")" >> musl-toolchain.cmake
-        echo "set(BOOST_ROOT ${PWD}/deps/boost-1.84.0)" >> musl-toolchain.cmake
+      - name: Build librime
+        run: |
+          cd librime
+          make merged-plugins
 
-    - name: Build librime with musl toolchain
-      run: |
-        cd librime
-        mkdir build
-        cd build
-        cmake .. -DCMAKE_TOOLCHAIN_FILE=../musl-toolchain.cmake
-        make merged-plugins
-
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: librime-build
-        path: librime/build/{lib,bin}  # Change path if needed based on actual build output
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: librime-build
+          path: librime/build/{lib,bin}  # Change path if needed based on actual build output
